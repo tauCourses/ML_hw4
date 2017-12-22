@@ -9,6 +9,7 @@ import math
 
 dir_path = repr(os.path.dirname(os.path.realpath(sys.argv[0]))).strip("'")
 
+print('Loading data set... ', end="")
 mnist = fetch_mldata('MNIST original')
 data = mnist['data']
 labels = mnist['target']
@@ -31,7 +32,7 @@ train_data = sklearn.preprocessing.scale(train_data_unscaled, axis=0, with_std=F
 validation_data = sklearn.preprocessing.scale(validation_data_unscaled, axis=0, with_std=False)
 test_data = sklearn.preprocessing.scale(test_data_unscaled, axis=0, with_std=False)
 
-print("Finished Loading.")
+print('done')
 
 
 def sgd_svm_classifier_w(train_set_data, train_set_labels, eta0, C, T):
@@ -57,10 +58,11 @@ def test_classifier(test_set_data, test_set_labels, classifier):
 
 
 def assignment_1_a():
+    print('Running assignment 1a... ', end="")
     T = 1000
     C = 1
     number_of_repeats = 10
-    eta0_options = [math.pow(10, i) for i in numpy.linspace(-2.5, -0.5, 100)]
+    eta0_options = [math.pow(10, i) for i in numpy.linspace(-4, -1.5, 100)]
     train_result_accuracy = []
     validation_result_accuracy = []
     for eta0 in eta0_options:
@@ -75,7 +77,6 @@ def assignment_1_a():
     max_value = max(validation_result_accuracy)
     max_index = validation_result_accuracy.index(max_value)
     my_best_eta_0 = eta0_options[max_index]
-    print("Best η0 for SGD SVM was: " + str(my_best_eta_0))
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.set_xscale('log')
@@ -86,13 +87,16 @@ def assignment_1_a():
     plt.ylabel('accuracy', fontsize=16)
     fig.savefig(os.path.join(dir_path, '1_a.png'))
     fig.clf()
+    print('done')
+    print("Best η0 for SGD SVM was: " + str(my_best_eta_0))
     return my_best_eta_0
 
 
 def assignment_1_b(eta0):
+    print('Running assignment 1b... ', end="")
     T = 1000
     number_of_repeats = 10
-    c_options = [math.pow(10, i) for i in numpy.linspace(-10, 10, 100)]
+    c_options = [math.pow(10, i) for i in numpy.linspace(-0.5, 0.5, 100)]
     train_result_accuracy = []
     validation_result_accuracy = []
     for C in c_options:
@@ -107,19 +111,39 @@ def assignment_1_b(eta0):
     max_value = max(validation_result_accuracy)
     max_index = validation_result_accuracy.index(max_value)
     my_best_c = c_options[max_index]
-    print("Best C for SGD SVM was: " + str(my_best_c))
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.set_xscale('log')
     ax.plot(c_options, train_result_accuracy, 'r-', label='Train Accuracy', )
     ax.plot(c_options, validation_result_accuracy, 'b-', label='Validation Accuracy')
     plt.legend()
-    plt.xlabel('η0', fontsize=18)
+    plt.xlabel('C', fontsize=18)
     plt.ylabel('accuracy', fontsize=16)
     fig.savefig(os.path.join(dir_path, '1_b.png'))
     fig.clf()
+    print('done')
+    print("Best C for SGD SVM was: " + str(my_best_c))
     return my_best_c
 
 
+def assignment_1_c(eta0, C):
+    print('Running assignment 1c... ', end="")
+    T = 20000
+    classifier, w = sgd_svm_classifier_w(train_data, train_labels, eta0, C, T)
+    plt.imshow(reshape(w, (28, 28)), interpolation="nearest")
+    plt.savefig(os.path.join(dir_path, '1_c.png'))
+    print('done')
+    return classifier
+
+
+def assignment_1_d(classifier):
+    print('Running assignment 1d... ', end="")
+    accuracy = test_classifier(test_data, test_labels, classifier)
+    print('done')
+    print('accuracy of the best classifier was: ' + str(accuracy))
+
+
 best_eta0 = assignment_1_a()
-assignment_1_b(best_eta0)
+best_C = assignment_1_b(best_eta0)
+best_classifier = assignment_1_c(best_eta0, best_C)
+assignment_1_d(best_classifier)
