@@ -34,7 +34,7 @@ class Network(object):
                         for x, y in zip(sizes[:-1], sizes[1:])]
 
     def SGD(self, training_data, epochs, mini_batch_size, learning_rate,
-            test_data, plot_graphs = False):
+            test_data, plot_graphs = False, calc_gradient_norms = False):
         """Train the neural network using mini-batch stochastic
         gradient descent.  The ``training_data`` is a list of tuples
         ``(x, y)`` representing the training inputs and the desired
@@ -44,25 +44,37 @@ class Network(object):
         training_accuracy = []
         training_loss = []
         test_accuracy = []
+        gradient_norms = [[] for i in self.biases]
         epochs = [i for i in range(epochs)]
         for epoch in epochs:
+            nabla_b = [np.zeros(b.shape) for b in self.biases]
             random.shuffle(list(training_data))
             mini_batches = [
                 training_data[k:k+mini_batch_size]
                 for k in range(0, n, mini_batch_size)]
             for mini_batch in mini_batches:
-                self.update_mini_batch(mini_batch, learning_rate)
+                delta_nabla_b = self.update_mini_batch(mini_batch, learning_rate)
+                if calc_gradient_norms:
+                    nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
 
-            if(plot_graphs):
+            if plot_graphs:
                 training_accuracy.append(self.one_hot_accuracy(training_data))
                 training_loss.append(self.loss(training_data))
                 test_accuracy.append(self.one_label_accuracy(test_data))
+
+            if calc_gradient_norms:
+                for i, b in enumerate(nabla_b):
+                    gradient_norms[i].append(np.linalg.norm(b)/ float(n))
+
             print ("Epoch {0} test accuracy: {1}".format(epoch, self.one_label_accuracy(test_data)))
 
-        if (plot_graphs):
+        if plot_graphs:
             self.plot_graph(epochs, training_accuracy, 'training accuracy', 'epcohs', 'training accuracy', '2_b_training_accuracy.png')
             self.plot_graph(epochs, training_loss, 'training loss', 'epcohs', 'training loss', '2_b_training_loss.png')
             self.plot_graph(epochs, test_accuracy, 'test accuracy', 'epcohs', 'test accuracy', '2_b_test_accuracy.png')
+
+        if calc_gradient_norms:
+            self.plot_gradient_norms(epochs, gradient_norms)
 
     def plot_graph(self, x, y, label, xlabel, ylabel,name):
         fig = plt.figure()
@@ -71,6 +83,17 @@ class Network(object):
         plt.xlabel(xlabel, fontsize=18)
         plt.ylabel(ylabel, fontsize=16)
         fig.savefig(os.path.join(dir_path, name))
+        fig.clf()
+
+    def plot_gradient_norms(self, epochs, gradient_norms):
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        for i, b in enumerate(gradient_norms):
+            ax.plot(epochs, b, label="b"+str(i+1))
+        plt.xlabel('epcohs', fontsize=18)
+        plt.ylabel('gradient norm', fontsize=16)
+        plt.legend()
+        fig.savefig(os.path.join(dir_path, 'gradient_norms.png'))
         fig.clf()
 
     def update_mini_batch(self, mini_batch, learning_rate):
@@ -83,10 +106,15 @@ class Network(object):
             delta_nabla_b, delta_nabla_w = self.backprop(x, y)
             nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
             nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
+
+
+
         self.weights = [w - (learning_rate / len(mini_batch)) * nw
                         for w, nw in zip(self.weights, nabla_w)]
         self.biases = [b - (learning_rate / len(mini_batch)) * nb
                        for b, nb in zip(self.biases, nabla_b)]
+
+        return nabla_b
 
     def backprop(self, x, y):
         vs = []
@@ -96,17 +124,17 @@ class Network(object):
             vs.append(temp)
             zs.append(sigmoid(temp))
 
-        db = [None] * (self.num_layers - 1)
-        dw = [None] * (self.num_layers - 1)
+        db = [np.zeros(b.shape) for b in self.biases]
+        dw = [np.zeros(w.shape) for w in self.weights]
 
-        db[-1] = self.loss_derivative_wr_output_activations(zs[-1], y) * sigmoid_derivative(vs[-1]) #last layer
+        db[-1] = self.loss_derivative_wr_output_activations(zs[-1], y) * sigmoid_derivative(vs[-1])  # last layer -delta
         dw[-1] = np.dot(db[-1], zs[-2].transpose())
 
         for i in range(self.num_layers-3,-1,-1): #backward:
-            db[i] = np.dot(self.weights[i+1].transpose(), db[i+1]) * sigmoid_derivative(vs[i])
+            db[i] = np.dot(self.weights[i+1].transpose(), db[i+1]) * sigmoid_derivative(vs[i])  # delta
             dw[i] = np.dot(db[i], zs[i].transpose())
 
-        return (db, dw)
+        return db, dw
 
     def one_label_accuracy(self, data):
         """Return accuracy of network on data with numeric labels"""

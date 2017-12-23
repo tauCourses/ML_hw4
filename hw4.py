@@ -1,3 +1,4 @@
+# coding=utf-8
 from numpy import *
 import os
 import sys
@@ -9,7 +10,7 @@ import math
 
 dir_path = repr(os.path.dirname(os.path.realpath(sys.argv[0]))).strip("'")
 
-print('Loading data set... ', end="")
+print 'Loading data set... ',
 mnist = fetch_mldata('MNIST original')
 data = mnist['data']
 labels = mnist['target']
@@ -58,7 +59,7 @@ def test_classifier(test_set_data, test_set_labels, classifier):
 
 
 def assignment_1_a():
-    print('Running assignment 1a... ', end="")
+    print 'Running assignment 1a... ',
     T = 1000
     C = 1
     number_of_repeats = 10
@@ -93,7 +94,7 @@ def assignment_1_a():
 
 
 def assignment_1_b(eta0):
-    print('Running assignment 1b... ', end="")
+    print 'Running assignment 1b... ',
     T = 1000
     number_of_repeats = 10
     c_options = [math.pow(10, i) for i in numpy.linspace(-0.5, 0.5, 100)]
@@ -127,7 +128,7 @@ def assignment_1_b(eta0):
 
 
 def assignment_1_c(eta0, C):
-    print('Running assignment 1c... ', end="")
+    print 'Running assignment 1c... ',
     T = 20000
     classifier, w = sgd_svm_classifier_w(train_data, train_labels, eta0, C, T)
     plt.imshow(reshape(w, (28, 28)), interpolation="nearest")
@@ -137,7 +138,7 @@ def assignment_1_c(eta0, C):
 
 
 def assignment_1_d(classifier):
-    print('Running assignment 1d... ', end="")
+    print 'Running assignment 1d... ',
     accuracy = test_classifier(test_data, test_labels, classifier)
     print('done')
     print('accuracy of the best classifier was: ' + str(accuracy))
