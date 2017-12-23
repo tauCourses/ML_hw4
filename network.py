@@ -96,17 +96,15 @@ class Network(object):
             vs.append(temp)
             zs.append(sigmoid(temp))
 
-        db = [0] * (self.num_layers - 1)
-        dw = [0] * (self.num_layers - 1)
+        db = [None] * (self.num_layers - 1)
+        dw = [None] * (self.num_layers - 1)
 
-        delta = self.loss_derivative_wr_output_activations(zs[-1], y) * sigmoid_derivative(vs[-1]) #last layer
-        db[-1] = delta.sum(1).reshape([len(delta), 1])
-        dw[-1] = np.dot(delta, zs[-2].transpose())
+        db[-1] = self.loss_derivative_wr_output_activations(zs[-1], y) * sigmoid_derivative(vs[-1]) #last layer
+        dw[-1] = np.dot(db[-1], zs[-2].transpose())
 
         for i in range(self.num_layers-3,-1,-1): #backward:
-            delta = np.dot(self.weights[i+1].transpose(), delta) * sigmoid_derivative(vs[i])
-            db[i] = delta.sum(1).reshape([len(delta), 1])
-            dw[i] = np.dot(delta, zs[i].transpose())
+            db[i] = np.dot(self.weights[i+1].transpose(), db[i+1]) * sigmoid_derivative(vs[i])
+            dw[i] = np.dot(db[i], zs[i].transpose())
 
         return (db, dw)
 
