@@ -6,6 +6,14 @@ import random
 import numpy as np
 import math
 
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+import os
+import sys
+
+dir_path = repr(os.path.dirname(os.path.realpath(sys.argv[0]))).strip("'")
+
 class Network(object):
 
     def __init__(self, sizes):
@@ -26,23 +34,44 @@ class Network(object):
                         for x, y in zip(sizes[:-1], sizes[1:])]
 
     def SGD(self, training_data, epochs, mini_batch_size, learning_rate,
-            test_data):
+            test_data, plot_graphs = False):
         """Train the neural network using mini-batch stochastic
         gradient descent.  The ``training_data`` is a list of tuples
         ``(x, y)`` representing the training inputs and the desired
         outputs.  """
         print("Initial test accuracy: {0}".format(self.one_label_accuracy(test_data)))
         n = len(training_data)
-        for j in range(epochs):
+        training_accuracy = []
+        training_loss = []
+        test_accuracy = []
+        epochs = [i for i in range(epochs)]
+        for epoch in epochs:
             random.shuffle(list(training_data))
             mini_batches = [
                 training_data[k:k+mini_batch_size]
                 for k in range(0, n, mini_batch_size)]
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, learning_rate)
-            print ("Epoch {0} test accuracy: {1}".format(j, self.one_label_accuracy(test_data)))
 
+            if(plot_graphs):
+                training_accuracy.append(self.one_hot_accuracy(training_data))
+                training_loss.append(self.loss(training_data))
+                test_accuracy.append(self.one_label_accuracy(test_data))
+            print ("Epoch {0} test accuracy: {1}".format(epoch, self.one_label_accuracy(test_data)))
 
+        if (plot_graphs):
+            self.plot_graph(epochs, training_accuracy, 'training accuracy', 'epcohs', 'training accuracy', '2_b_training_accuracy.png')
+            self.plot_graph(epochs, training_loss, 'training loss', 'epcohs', 'training loss', '2_b_training_loss.png')
+            self.plot_graph(epochs, test_accuracy, 'test accuracy', 'epcohs', 'test accuracy', '2_b_test_accuracy.png')
+
+    def plot_graph(self, x, y, label, xlabel, ylabel,name):
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.plot(x, y, label=label)
+        plt.xlabel(xlabel, fontsize=18)
+        plt.ylabel(ylabel, fontsize=16)
+        fig.savefig(os.path.join(dir_path, name))
+        fig.clf()
 
     def update_mini_batch(self, mini_batch, learning_rate):
         """Update the network's weights and biases by applying
