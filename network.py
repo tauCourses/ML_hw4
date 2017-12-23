@@ -71,13 +71,13 @@ class Network(object):
         dw = [0] * (self.num_layers - 1)
 
         delta = self.loss_derivative_wr_output_activations(zs[-1], y) * sigmoid_derivative(vs[-1]) #last layer
-        db[self.num_layers-2] = delta.sum(1).reshape([len(delta), 1])
-        dw[self.num_layers-2] = np.dot(delta, zs[-2].transpose())
+        db[-1] = delta.sum(1).reshape([len(delta), 1])
+        dw[-1] = np.dot(delta, zs[-2].transpose())
 
-        for i in range(self.num_layers-2,0,-1): #backward:
-            delta = np.dot(self.weights[i].transpose(), delta) * sigmoid_derivative(vs[i-1])
-            db[i-1] = delta.sum(1).reshape([len(delta), 1])
-            dw[i-1] = np.dot(delta, zs[i-1].transpose())
+        for i in range(self.num_layers-3,-1,-1): #backward:
+            delta = np.dot(self.weights[i+1].transpose(), delta) * sigmoid_derivative(vs[i])
+            db[i] = delta.sum(1).reshape([len(delta), 1])
+            dw[i] = np.dot(delta, zs[i].transpose())
 
         return (db, dw)
 
