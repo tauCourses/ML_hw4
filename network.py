@@ -124,10 +124,11 @@ class Network(object):
             vs.append(temp)
             zs.append(sigmoid(temp))
 
+        zs[-1] = self.output_softmax(vs[-1])
         db = [np.zeros(b.shape) for b in self.biases]
         dw = [np.zeros(w.shape) for w in self.weights]
 
-        db[-1] = self.loss_derivative_wr_output_activations(zs[-1], y) * sigmoid_derivative(vs[-1])  # last layer -delta
+        db[-1] = self.loss_derivative_wr_output_activations(vs[-1], y)  # last layer -delta
         dw[-1] = np.dot(db[-1], zs[-2].transpose())
 
         for i in range(self.num_layers-3,-1,-1): #backward:
