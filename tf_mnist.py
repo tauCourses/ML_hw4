@@ -30,6 +30,11 @@ def model(x, y, y_pared, learning_rate=0.5, optimizer=tf.train.GradientDescentOp
     for _ in range(steps_number):
         batch_xs, batch_ys = mnist.train.next_batch(batch_size)
         sess.run(train_step, feed_dict={x: batch_xs, y: batch_ys})
+        if _ % 100 == 0:
+            train_accuracy = accuracy.eval(feed_dict={x: batch_xs, y: batch_ys})
+            validation_accuracy = accuracy.eval(feed_dict={x: mnist.validation.images, y: mnist.validation.labels})
+            print('step %d, training accuracy %g, validation accuracy %g' % (_, train_accuracy, validation_accuracy))
+
     # Test trained model
     print('Test Accuracy')
     current_accuracy = sess.run(accuracy, feed_dict={x: mnist.test.images, y: mnist.test.labels})
