@@ -1,4 +1,3 @@
-# coding=utf-8
 from numpy import *
 import os
 import sys
@@ -10,7 +9,7 @@ import math
 
 dir_path = repr(os.path.dirname(os.path.realpath(sys.argv[0]))).strip("'")
 
-print 'Loading data set... ',
+print('Loading data set... ', end="")
 mnist = fetch_mldata('MNIST original')
 data = mnist['data']
 labels = mnist['target']
@@ -28,7 +27,7 @@ validation_labels = (labels[train_idx[6000:]] == pos) * 2 - 1
 test_data_unscaled = data[60000 + test_idx, :].astype(float)
 test_labels = (labels[60000 + test_idx] == pos) * 2 - 1
 
-# Preprocessing
+# Prepossessing
 train_data = sklearn.preprocessing.scale(train_data_unscaled, axis=0, with_std=False)
 validation_data = sklearn.preprocessing.scale(validation_data_unscaled, axis=0, with_std=False)
 test_data = sklearn.preprocessing.scale(test_data_unscaled, axis=0, with_std=False)
@@ -37,7 +36,7 @@ print('done')
 
 
 def sgd_svm_classifier_w(train_set_data, train_set_labels, eta0, C, T):
-    w = numpy.zeros_like(train_data[0])
+    w = numpy.zeros_like(train_set_data[0])
     for t in range(1, T + 1):
         eta_t = eta0 / t
         i = numpy.random.randint(0, len(train_set_data))
@@ -59,7 +58,7 @@ def test_classifier(test_set_data, test_set_labels, classifier):
 
 
 def assignment_1_a():
-    print 'Running assignment 1a... ',
+    print('Running assignment 1a... ', end="")
     T = 1000
     C = 1
     number_of_repeats = 10
@@ -94,10 +93,10 @@ def assignment_1_a():
 
 
 def assignment_1_b(eta0):
-    print 'Running assignment 1b... ',
+    print('Running assignment 1b... ', end="")
     T = 1000
     number_of_repeats = 10
-    c_options = [math.pow(10, i) for i in numpy.linspace(-0.5, 0.5, 100)]
+    c_options = [math.pow(10, i) for i in numpy.linspace(-1.5, 1.5, 100)]
     train_result_accuracy = []
     validation_result_accuracy = []
     for C in c_options:
@@ -128,7 +127,7 @@ def assignment_1_b(eta0):
 
 
 def assignment_1_c(eta0, C):
-    print 'Running assignment 1c... ',
+    print('Running assignment 1c... ', end="")
     T = 20000
     classifier, w = sgd_svm_classifier_w(train_data, train_labels, eta0, C, T)
     plt.imshow(reshape(w, (28, 28)), interpolation="nearest")
@@ -138,13 +137,33 @@ def assignment_1_c(eta0, C):
 
 
 def assignment_1_d(classifier):
-    print 'Running assignment 1d... ',
+    print('Running assignment 1d... ', end="")
     accuracy = test_classifier(test_data, test_labels, classifier)
     print('done')
     print('accuracy of the best classifier was: ' + str(accuracy))
 
 
-best_eta0 = assignment_1_a()
-best_C = assignment_1_b(best_eta0)
-best_classifier = assignment_1_c(best_eta0, best_C)
-assignment_1_d(best_classifier)
+if len(sys.argv) < 2:
+    print("Please enter which part do you want to execute - a, b, c, d or all")
+    exit()
+
+cmds = sys.argv[1:]
+for cmd in cmds:
+    if cmd not in ['a', 'b', 'c', 'd', 'e', 'all']:
+        print("Unknown argument %s. please run with a, b, c, d or all" % cmd)
+        exit()
+
+if 'a' in cmds:
+    best_eta0 = assignment_1_a()
+if 'b' in cmds:
+    best_eta0 = assignment_1_a()
+    best_C = assignment_1_b(best_eta0)
+if 'c' in cmds:
+    best_eta0 = assignment_1_a()
+    best_C = assignment_1_b(best_eta0)
+    best_classifier = assignment_1_c(best_eta0, best_C)
+if 'd' in cmds or 'all' in cmds:
+    best_eta0 = assignment_1_a()
+    best_C = assignment_1_b(best_eta0)
+    best_classifier = assignment_1_c(best_eta0, best_C)
+    assignment_1_d(best_classifier)
